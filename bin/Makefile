@@ -22,8 +22,10 @@ clean:
 	rm -f $(TARGETS)
 
 install: $(TARGETS)
-	@echo "Tools built successfully!"
-	@echo "Add this directory to your PATH or copy to /usr/local/bin:"
-	@echo "  export PATH=\"$(PWD):\$$PATH\""
+	@echo "Tools built successfully in bin/ directory!"
+	@echo "Add bin/ to your PATH or create symlinks:"
+	@echo "  export PATH=\"\$$PATH:$(PWD)\""
+	@echo "  # Or: sudo ln -s $(PWD)/pulseinfo /usr/local/bin/pulseinfo"
+	@echo "  # Or: sudo ln -s $(PWD)/pulse2pulse /usr/local/bin/pulse2pulse"
 
 .PHONY: all clean install

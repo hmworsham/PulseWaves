@@ -76,22 +76,22 @@ def example_cli_tools():
     print("=" * 60)
 
     print("Available tools:")
-    print("  ./pulseinfo -i file.pls [-verbose]")
-    print("  ./pulse2pulse -i input.pls -o output.txt [-verbose]")
+    print("  bin/pulseinfo -i file.pls [-verbose]")
+    print("  bin/pulse2pulse -i input.pls -o output.txt [-verbose]")
     print()
 
     print("Testing tools...")
     repo_root = os.path.dirname(os.path.dirname(__file__))
 
     # Test pulseinfo
-    pulseinfo_path = os.path.join(repo_root, 'pulseinfo')
+    pulseinfo_path = os.path.join(repo_root, 'bin', 'pulseinfo')
     if os.path.exists(pulseinfo_path):
         print(f"✓ pulseinfo found at: {pulseinfo_path}")
     else:
         print(f"⚠ pulseinfo not found (expected at {pulseinfo_path})")
 
     # Test pulse2pulse
-    pulse2pulse_path = os.path.join(repo_root, 'pulse2pulse')
+    pulse2pulse_path = os.path.join(repo_root, 'bin', 'pulse2pulse')
     if os.path.exists(pulse2pulse_path):
         print(f"✓ pulse2pulse found at: {pulse2pulse_path}")
     else:
@@ -112,7 +112,7 @@ if __name__ == "__main__":
 
     print("=" * 60)
     print("For more information, see:")
-    print("  - SETUP.md (main setup guide)")
+    print("  - README.md (main setup guide)")
     print("  - python/README.md (Python API reference)")
     print("=" * 60)
     print()

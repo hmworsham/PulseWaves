@@ -117,7 +117,7 @@ Convert between pulse file formats.
 
 ## Examples
 
-See [SETUP.md](../SETUP.md) for more examples and usage patterns.
+See [README.md](../README.md) for more examples and usage patterns.
 
 ## Supported Formats
 

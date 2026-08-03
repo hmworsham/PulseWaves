@@ -14,7 +14,7 @@ cd "$SCRIPT_DIR"
 
 # 1. Check if tools are already built
 echo "[1/4] Checking command-line tools..."
-if [ -f "./pulseinfo" ] && [ -f "./pulse2pulse" ]; then
+if [ -f "./bin/pulseinfo" ] && [ -f "./bin/pulse2pulse" ]; then
     echo "✓ Command-line tools already built"
 else
     echo "Building command-line tools..."
@@ -26,7 +26,7 @@ fi
 # 2. Make tools executable
 echo ""
 echo "[2/4] Making tools executable..."
-chmod +x pulseinfo pulse2pulse 2>/dev/null || true
+chmod +x bin/pulseinfo bin/pulse2pulse 2>/dev/null || true
 echo "✓ Tools are executable"
 
 # 3. Python setup
@@ -81,11 +81,11 @@ echo "Next Steps:"
 echo "========================================="
 echo ""
 echo "1. Test the command-line tools:"
-echo "   ./pulseinfo -h"
-echo "   ./pulse2pulse -h"
+echo "   bin/pulseinfo -h"
+echo "   bin/pulse2pulse -h"
 echo ""
 echo "2. Add tools to your PATH (optional):"
-echo "   echo 'export PATH=\"\$PATH:$SCRIPT_DIR\"' >> ~/.zshrc"
+echo "   echo 'export PATH=\"\$PATH:$SCRIPT_DIR/bin\"' >> ~/.zshrc"
 echo "   source ~/.zshrc"
 echo ""
 echo "3. Use Python bindings:"
@@ -95,7 +95,7 @@ echo "   Or install as a package:"
 echo "   cd python && pip install -e ."
 echo ""
 echo "4. Test with sample data:"
-echo "   ./pulseinfo -i data/sofs_3d_2cycles.pls"
+echo "   bin/pulseinfo -i data/sofs_3d_2cycles.pls"
 echo ""
-echo "For more information, see SETUP.md"
+echo "For more information, see README.md"
 echo ""

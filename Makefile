@@ -6,12 +6,10 @@ all:
 clean: # Quick clean - use when you want to rebuild
 	cd src && make clean
 	cd bin && make clean
-	rm -f pulseinfo pulse2pulse
 
 clobber: # Deep clean - use before git commit or distribution
 	cd src && make clobber
 	cd bin && make clean
-	rm -f pulseinfo pulse2pulse
 	rm -f lib/*
 	find python -name "*.so" -delete
 	find python -name "*.dylib" -delete
@@ -25,7 +23,6 @@ clobber: # Deep clean - use before git commit or distribution
 tools:
 	cd src && make
 	cd bin && make
-	cp bin/pulseinfo bin/pulse2pulse .
 
 python:
 	@echo "Building Python bindings (requires pybind11)..."
