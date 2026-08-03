@@ -1,0 +1,37 @@
+cd src && make
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulseheader.cpp -o pulseheader.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsevlrs.cpp -o pulsevlrs.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsedescriptor.cpp -o pulsedescriptor.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsepulse.cpp -o pulsepulse.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. waveswaves.cpp -o waveswaves.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsereader.cpp -o pulsereader.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsewriter.cpp -o pulsewriter.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsereadermerged.cpp -o pulsereadermerged.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsereader_pls.cpp -o pulsereader_pls.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsereader_gcw.cpp -o pulsereader_gcw.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsereader_lgw.cpp -o pulsereader_lgw.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsewriter_pls.cpp -o pulsewriter_pls.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsewriter_txt.cpp -o pulsewriter_txt.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsereadwaves_raw.cpp -o pulsereadwaves_raw.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsereadwaves_compressed.cpp -o pulsereadwaves_compressed.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsewritewaves_raw.cpp -o pulsewritewaves_raw.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsewritewaves_compressed.cpp -o pulsewritewaves_compressed.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulseutility.cpp -o pulseutility.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsefilter.cpp -o pulsefilter.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsetransform.cpp -o pulsetransform.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsezip.cpp -o pulsezip.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsereadpulse.cpp -o pulsereadpulse.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsereaditemcompressed_v1.cpp -o pulsereaditemcompressed_v1.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsewritepulse.cpp -o pulsewritepulse.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. pulsewriteitemcompressed_v1.cpp -o pulsewriteitemcompressed_v1.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. integercompressor.cpp -o integercompressor.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. arithmeticdecoder.cpp -o arithmeticdecoder.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. arithmeticencoder.cpp -o arithmeticencoder.o
+clang++  -c -O3 -Wall -Wno-deprecated -DNDEBUG -DUNORDERED -std=c++14 -Wno-deprecated-register -Wno-writable-strings -Wno-unused-variable -Wno-unused-private-field -I../inc -I. arithmeticmodel.cpp -o arithmeticmodel.o
+ar rc libpulsewaves.a pulseheader.o pulsevlrs.o pulsedescriptor.o pulsepulse.o waveswaves.o pulsereader.o pulsewriter.o pulsereadermerged.o pulsereader_pls.o pulsereader_gcw.o pulsereader_lgw.o pulsewriter_pls.o pulsewriter_txt.o pulsereadwaves_raw.o pulsereadwaves_compressed.o pulsewritewaves_raw.o pulsewritewaves_compressed.o pulseutility.o pulsefilter.o pulsetransform.o pulsezip.o pulsereadpulse.o pulsereaditemcompressed_v1.o pulsewritepulse.o pulsewriteitemcompressed_v1.o integercompressor.o arithmeticdecoder.o arithmeticencoder.o arithmeticmodel.o
+ranlib libpulsewaves.a
+mkdir -p ../lib
+cp -p libpulsewaves.a ../lib
+cd example && make
+g++  -c -O3 -Wall -I/usr/include -I../inc exampleLIB.cpp -o exampleLIB.o
+g++  -O3 -Wall exampleLIB.o -lpulsewaves -o exampleLIB  -L../lib -I/usr/include -I../inc
