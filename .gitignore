@@ -1,5 +1,60 @@
+# Compiled binaries and object files
 exampleLIB
 *.a
 *.o
+*.so
+*.dylib
+*.lib
+*.dll
+*.exe
+
+# Build artifacts
+lib/libpulsewaves.a
+lib/*.so
+pulseinfo
+pulse2pulse
+
+# Visual Studio
 *.suo
 *.sdf
+*.user
+*.vcxproj.user
+.vs/
+Debug/
+Release/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Editor backup files
+*~
+*.swp
+*.swo
+.*.sw?
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
