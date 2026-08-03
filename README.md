@@ -50,7 +50,15 @@ export PATH="$PATH:/path/to/PulseWaves/bin"
 sudo ln -s /path/to/PulseWaves/bin/pulseinfo /usr/local/bin/pulseinfo
 sudo ln -s /path/to/PulseWaves/bin/pulse2pulse /usr/local/bin/pulse2pulse
 ```
+Then, 
 
+```bash
+# Display file information
+pulseinfo -i data/sofs_3d_2cycles.pls
+
+# Convert between formats
+pulse2pulse -i data/sofs_3d_2cycles.pls -o /path/to/output.gcw
+```
 ## Installation
 
 ### Command-Line Tools (macOS)
@@ -109,7 +117,7 @@ bin/pulseinfo -i data/sofs_3d_2cycles.pls -verbose
 
 ### pulse2pulse
 
-Convert between pulse waveform file formats:
+Convert between waveform file formats:
 
 ```bash
 # Convert PLS to text format
@@ -121,10 +129,6 @@ bin/pulse2pulse -i input.lgw -o output.pls
 
 ## Python Usage
 
-### High-Level Interface
-
-Works immediately after installation:
-
 ```python
 from pulsewaves import pulseinfo, pulse2pulse
 
@@ -135,7 +139,7 @@ print(info['output'])
 # Example 2: Convert formats
 pulse2pulse(
     "data/sofs_3d_2cycles.pls",
-    "output.txt",
+    "/path/to.output.gcw",
     verbose=True
 )
 ```
@@ -200,7 +204,6 @@ PulseWaves/
 - C++ compiler (clang++ or g++)
 - Make
 - Python 3.x (for Python bindings)
-- pybind11 and numpy (for native Python bindings)
 
 ### Build Commands
 
