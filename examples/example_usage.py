@@ -1,118 +1,51 @@
 #!/usr/bin/env python3
-"""
-Example usage of PulseWaves Python bindings
-
-This demonstrates both the high-level and native interfaces.
-"""
+"""Example usage of the native PulseWaves Python bindings."""
 
 import sys
-import os
-
-# Add parent directory to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'python'))
-
-def example_high_level():
-    """Example using high-level Python interface (works without native bindings)"""
-    print("=" * 60)
-    print("Example 1: High-Level Interface")
-    print("=" * 60)
-
-    from pulsewaves import pulseinfo, pulse2pulse
-
-    # This would work if you have a pulse file:
-    # info = pulseinfo("your_file.pls", verbose=True)
-    # print(info['output'])
-
-    print("✓ High-level interface imported successfully")
-    print("  Usage: pulseinfo('file.pls', verbose=True)")
-    print("  Usage: pulse2pulse('input.pls', 'output.txt')")
-    print()
+from pathlib import Path
 
 
-def example_native():
-    """Example using native C++ bindings (requires compilation)"""
-    print("=" * 60)
-    print("Example 2: Native Interface (if available)")
-    print("=" * 60)
+REPO_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(REPO_ROOT / "python"))
 
-    try:
-        from pulsewaves.pulsewaves_native import PulseReader
-        import numpy as np
 
-        print("✓ Native bindings are available!")
-        print()
-        print("Example code:")
-        print("""
+from pulsewaves import PulseReader, PulseFilter, PulseHistogram, version
+
+
+def main():
+    print(f"Using {version()}")
+
     reader = PulseReader()
-    if reader.open("data.pls"):
-        header = reader.get_header()
-        print(f"Pulses: {header['number_of_pulses']}")
+    if not reader.open(str(REPO_ROOT / "data" / "test.pls")):
+        raise SystemExit("Could not open data/test.pls")
 
-        while reader.read_pulse():
-            pulse = reader.get_pulse()
-            waveform = reader.get_waveform()  # numpy array
-            print(f"Position: ({pulse['x']}, {pulse['y']}, {pulse['z']})")
+    header = reader.get_header()
+    print(f"Pulses: {header.number_of_pulses}")
+    print(
+        "Bounds: "
+        f"X=[{header.min_x:.3f}, {header.max_x:.3f}] "
+        f"Y=[{header.min_y:.3f}, {header.max_y:.3f}] "
+        f"Z=[{header.min_z:.3f}, {header.max_z:.3f}]"
+    )
 
-        reader.close()
-        """)
+    histogram = PulseHistogram()
+    histogram.histo("intensity", 1.0)
 
-    except ImportError as e:
-        print("⚠ Native bindings not available")
-        print(f"  Error: {e}")
-        print()
-        print("To build native bindings:")
-        print("  1. pip install pybind11 numpy")
-        print("  2. cd python && python setup.py build_ext --inplace")
-        print()
-        print("The high-level interface works without native bindings.")
+    filter_ = PulseFilter()
+    filter_.parse(["-keep_intensity", "0", "255"])
 
-    print()
+    count = 0
+    while reader.read_pulse():
+        pulse = reader.get_pulse()
+        if not filter_.filter(pulse):
+            histogram.add(pulse)
+            count += 1
+        if count == 10:
+            break
 
-
-def example_cli_tools():
-    """Example using command-line tools"""
-    print("=" * 60)
-    print("Example 3: Command-Line Tools")
-    print("=" * 60)
-
-    print("Available tools:")
-    print("  bin/pulseinfo -i file.pls [-verbose]")
-    print("  bin/pulse2pulse -i input.pls -o output.txt [-verbose]")
-    print()
-
-    print("Testing tools...")
-    repo_root = os.path.dirname(os.path.dirname(__file__))
-
-    # Test pulseinfo
-    pulseinfo_path = os.path.join(repo_root, 'bin', 'pulseinfo')
-    if os.path.exists(pulseinfo_path):
-        print(f"✓ pulseinfo found at: {pulseinfo_path}")
-    else:
-        print(f"⚠ pulseinfo not found (expected at {pulseinfo_path})")
-
-    # Test pulse2pulse
-    pulse2pulse_path = os.path.join(repo_root, 'bin', 'pulse2pulse')
-    if os.path.exists(pulse2pulse_path):
-        print(f"✓ pulse2pulse found at: {pulse2pulse_path}")
-    else:
-        print(f"⚠ pulse2pulse not found (expected at {pulse2pulse_path})")
-
-    print()
+    reader.close()
+    print(f"Read {count} filtered pulses")
 
 
 if __name__ == "__main__":
-    print("\n" + "=" * 60)
-    print("PulseWaves Python Bindings - Usage Examples")
-    print("=" * 60)
-    print()
-
-    example_high_level()
-    example_native()
-    example_cli_tools()
-
-    print("=" * 60)
-    print("For more information, see:")
-    print("  - README.md (main setup guide)")
-    print("  - python/README.md (Python API reference)")
-    print("=" * 60)
-    print()
+    main()
