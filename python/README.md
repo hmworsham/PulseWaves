@@ -1,164 +1,284 @@
 # PulseWaves Python Bindings
 
-Python interface for the PulseWaves full waveform LiDAR library.
+This package exposes the PulseWaves C++ library through a native `pybind11` extension named `pulsewaves.pulsewaves_native`. Importing `pulsewaves` re-exports the wrapped classes, constants, and helper functions from that extension. The binding links against the static library built from `../src.
 
-## Installation
+## Install for Development
 
-### Quick Install (High-Level Interface)
-
-```bash
-pip install -e .
-```
-
-This provides Python wrappers around the command-line tools.
-
-### With Native Bindings (Recommended for Performance)
+From the repository root:
 
 ```bash
-pip install pybind11 numpy
-python setup.py build_ext --inplace
-pip install -e .
+make
+cd python
+python -m pip install -e .
 ```
 
-This compiles C++ bindings for direct access to the PulseWaves library.
+To rebuild the extension in place without reinstalling the package:
 
-## Usage
+```bash
+make python
+```
 
-### High-Level Interface
+When you use an in-place build, add the package directory to `PYTHONPATH`:
 
-Works immediately after installation:
+```bash
+export PYTHONPATH="$PWD/python:$PYTHONPATH"
+```
+
+## Import the Bindings
 
 ```python
-from pulsewaves import pulseinfo, pulse2pulse
+import pulsewaves as pw
 
-# Get file information
-info = pulseinfo("data.pls", verbose=True)
-print(info['output'])
-
-# Convert formats
-pulse2pulse("input.pls", "output.txt", verbose=True)
+print(pw.version())
+print(pw.PULSEWAVES_FORMAT_PLS)
 ```
 
-### Native Interface
-
-If you built the native bindings:
+You can also import individual classes:
 
 ```python
-from pulsewaves.pulsewaves_native import PulseReader
-import numpy as np
-
-# Open and read pulse file
-reader = PulseReader()
-if reader.open("data.pls"):
-    # Get header information
-    header = reader.get_header()
-    print(f"Number of pulses: {header['number_of_pulses']}")
-    print(f"Bounds: X=[{header['min_x']:.2f}, {header['max_x']:.2f}]")
-
-    # Read pulses
-    while reader.read_pulse():
-        pulse = reader.get_pulse()
-        waveform = reader.get_waveform()  # numpy array
-
-        print(f"Position: ({pulse['x']:.2f}, {pulse['y']:.2f}, {pulse['z']:.2f})")
-        print(f"Intensity: {pulse['intensity']}")
-        print(f"Waveform samples: {len(waveform)}")
-
-    reader.close()
+from pulsewaves import PulseFilter, PulseReader
 ```
 
-## API Reference
+## Read Pulses
 
-### High-Level Functions
+```python
+from pathlib import Path
 
-#### `pulseinfo(filename, verbose=False)`
+import pulsewaves as pw
 
-Get information about a pulse file.
+reader = pw.PulseReader()
+if not reader.open(str(Path("data") / "geolas_example1.pls")):
+    raise RuntimeError("could not open pulse file")
 
-**Parameters:**
-- `filename` (str): Path to the pulse file
-- `verbose` (bool): Include detailed information
+header = reader.get_header()
+print(f"{header.number_of_pulses} pulses")
+print(f"x: {header.min_x:.3f} to {header.max_x:.3f}")
+print(f"y: {header.min_y:.3f} to {header.max_y:.3f}")
+print(f"z: {header.min_z:.3f} to {header.max_z:.3f}")
 
-**Returns:**
-- dict: File information with 'output' and 'raw' keys
+while reader.read_pulse():
+    pulse = reader.get_pulse()
+    anchor_x, anchor_y, anchor_z = pulse.get_anchor()
+    target_x, target_y, target_z = pulse.get_target()
 
-#### `pulse2pulse(input_file, output_file, **kwargs)`
+    print(
+        f"intensity={pulse.intensity} "
+        f"anchor=({anchor_x:.3f}, {anchor_y:.3f}, {anchor_z:.3f}) "
+        f"target=({target_x:.3f}, {target_y:.3f}, {target_z:.3f})"
+    )
+    break
 
-Convert between pulse file formats.
+reader.close()
+```
 
-**Parameters:**
-- `input_file` (str): Input file path
-- `output_file` (str): Output file path
-- `**kwargs`: Additional arguments (e.g., `verbose=True`)
+## Reuse C++ Reader Arguments
 
-### Native Interface
+`PulseReader.open_with_args()` accepts the same argument strings as
+`PULSEreadOpener::parse()` in the C++ library. That keeps file selection,
+filters, clipping, and transforms on the same code path as the native reader
+logic.
 
-#### `PulseReader`
+```python
+import pulsewaves as pw
 
-##### Methods
+reader = pw.PulseReader()
+if not reader.open_with_args([
+    "-i", "data/test.pls",
+    "-keep_intensity", "1", "255",
+    "-translate_intensity", "10",
+]):
+    raise RuntimeError("could not open pulse file")
 
-- `open(filename: str) -> bool`: Open a pulse file
-- `close()`: Close the file
-- `read_pulse() -> bool`: Read the next pulse
-- `get_pulse() -> dict`: Get current pulse data
-- `get_header() -> dict`: Get file header
-- `get_waveform() -> np.ndarray`: Get waveform samples
-- `get_npoints() -> int`: Get total number of pulses
+while reader.read_pulse():
+    pulse = reader.get_pulse()
+    print(pulse.intensity)
 
-##### Pulse Dictionary Keys
+reader.close()
+```
 
-- `x`, `y`, `z`: Spatial coordinates
-- `intensity`: Pulse intensity value
-- `offset`: Offset value
-- `anchor_x`, `anchor_y`, `anchor_z`: Anchor point
-- `target_x`, `target_y`, `target_z`: Target point
-- `first_returning_sample`, `last_returning_sample`: Sample indices
-- `descriptor_index`: Descriptor index
+## Filter Pulses
 
-## Examples
+`PulseFilter.parse()` also accepts the C++ filter syntax directly. The C++
+filter predicate returns `True` when a pulse should be filtered out, so keep
+pulses that return `False`.
 
-See [README.md](../README.md) for more examples and usage patterns.
+```python
+import pulsewaves as pw
 
-## Supported Formats
+filter_ = pw.PulseFilter()
+if not filter_.parse(["-keep_intensity", "25", "255"]):
+    raise ValueError("invalid filter arguments")
 
-- `.pls` - PulseWaves uncompressed
-- `.plz` - PulseWaves compressed
-- `.lgw` - Leica waveform data
-- `.lgc` - Leica compressed
-- `.gcw` - GeoCoding waveform
-- `.sdf` - Sorted data format
+reader = pw.PulseReader()
+reader.open("data/test.pls")
 
-## Development
+kept = 0
+while reader.read_pulse():
+    pulse = reader.get_pulse()
+    if not filter_.filter(pulse):
+        kept += 1
 
-### Building from Source
+reader.close()
+print(f"kept {kept} pulses")
+```
+
+For geometry filters that are easier to express directly, call the bound helper
+methods:
+
+```python
+filter_ = pw.PulseFilter()
+filter_.addKeepCircle(600000.0, 4000000.0, 250.0)
+filter_.addKeepBox(599500.0, 3999500.0, 600500.0, 4000500.0)
+```
+
+## Transform Pulses
+
+```python
+import pulsewaves as pw
+
+pulse = pw.Pulse()
+pulse.intensity = 42
+
+transform = pw.PulseTransform()
+if not transform.parse(["-translate_intensity", "10"]):
+    raise ValueError("invalid transform arguments")
+
+transform.transform(pulse)
+print(pulse.intensity)
+```
+
+`PulseReader.open_with_args()` can apply transform arguments while reading, so
+use an explicit `PulseTransform` only when you already have a pulse object you
+want to mutate.
+
+## Build Histograms
+
+```python
+import pulsewaves as pw
+
+histogram = pw.PulseHistogram()
+histogram.histo("intensity", 1.0)
+histogram.histo("classification", 1.0)
+
+reader = pw.PulseReader()
+reader.open("data/test.pls")
+
+while reader.read_pulse():
+    histogram.add(reader.get_pulse())
+
+reader.close()
+```
+
+The C++ `PULSEhistogram` type reports directly to `FILE*`, so the current Python
+binding supports building histogram state but does not yet expose a Pythonic
+`report()` result.
+
+## Build an Occupancy Grid
+
+```python
+import pulsewaves as pw
+
+grid = pw.PulseOccupancyGrid(1.0)
+
+reader = pw.PulseReader()
+reader.open("data/test.pls")
+
+while reader.read_pulse():
+    grid.add_pulse(reader.get_pulse())
+
+reader.close()
+
+print(grid.get_num_occupied())
+grid.write_asc_grid("/tmp/pulse_occupancy.asc")
+```
+
+`PulseOccupancyGrid.add(x, y)` is also available when you already have integer
+grid coordinates:
+
+```python
+grid = pw.PulseOccupancyGrid(5.0)
+grid.add(10, 20)
+grid.add(10, 21)
+print(grid.occupied(10, 20))
+```
+
+## Create Header Metadata
+
+```python
+import pulsewaves as pw
+
+sampling = pw.PulseSampling()
+sampling.description = "returning waveform"
+sampling.bits_per_sample = 8
+sampling.number_of_samples = 96
+
+composition = pw.PulseComposition()
+composition.number_of_samplings = 1
+composition.sample_units = 1
+
+scanner = pw.PulseScanner()
+scanner.instrument = "airborne waveform scanner"
+scanner.serial = "demo-001"
+scanner.wave_length = 1064
+scanner.pulse_frequency = 100000
+
+header = pw.PulseHeader()
+header.add_scanner(scanner, 1)
+header.add_descriptor(composition, [sampling], 1)
+header.set_bounding_box(0.0, 1000.0, 0.0, 1000.0, 0.0, 200.0)
+
+print(header.get_scanner(1).instrument)
+print(header.get_descriptor_samplings(1)[0].description)
+```
+
+## Quantize Coordinates
+
+`PulseQuantizer` exposes the same scale and offset fields as the underlying C++
+type:
+
+```python
+import pulsewaves as pw
+
+quantizer = pw.PulseQuantizer()
+quantizer.x_scale_factor = 0.01
+quantizer.x_offset = 500000.0
+
+raw_x = quantizer.get_X(500123.45)
+x = quantizer.get_x(raw_x)
+
+print(raw_x, x)
+```
+
+## Wrapped Types
+
+The extension wraps these PulseWaves classes:
+
+- `PulseReader`, `PulseWriter`
+- `Pulse`, `PulseHeader`, `PulseQuantizer`
+- `PulseItem`, `PulseAttribute`, `PulseAttributer`
+- `PulseSampling`, `PulseComposition`, `PulseDescriptor`
+- `PulseVLR`, `PulseAVLR`
+- `PulseScanner`, `PulseLookupTable`, `PulseTable`
+- `PulseGeoKeys`, `PulseKeyEntry`
+- `PulseZip`
+- `PulseInventory`, `PulseSummary`, `PulseBin`, `PulseHistogram`,
+  `PulseOccupancyGrid`
+- `PulseFilter`, `PulseTransform`, `PulseIndex`
+
+The module also exports PulseWaves format, compression, and extra-attribute
+constants from `pulsewavesdefinitions.hpp`.
+
+## Not Exposed
+
+The C++ code still contains methods that work directly with `FILE*`,
+`ByteStreamIn*`, and `ByteStreamOut*`. Those raw pointer APIs are intentionally
+not bound; Python call sites should go through `PulseReader`, `PulseWriter`,
+ordinary file paths, and Python-owned `bytes` instead.
+
+## Tests
+
+Run the Python smoke tests from the repository root:
 
 ```bash
-# Install dependencies
-pip install pybind11 numpy setuptools
-
-# Build native extension
-python setup.py build_ext --inplace
-
-# Run tests (if available)
-pytest tests/
+PYTHONPATH=python python -m unittest discover -s tests -v
 ```
-
-### Project Structure
-
-```
-python/
-├── __init__.py           # Package initialization
-├── pulsewaves.py         # High-level Python interface
-├── pulsewaves_bind.cpp   # Native C++ bindings
-├── setup.py              # Installation script
-└── README.md             # This file
-```
-
-## License
-
-GNU Lesser General Public License v2 or later (LGPLv2+)
-
-## Links
-
-- [PulseWaves Website](http://pulsewaves.org)
-- [GitHub](http://github.com/PulseWaves)
