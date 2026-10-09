@@ -7,7 +7,7 @@ Python-facing signatures for the wrapped C++ classes and functions.
 from __future__ import annotations
 
 from enum import Enum
-from typing import overload
+from typing import TypedDict, overload
 
 PULSEWAVES_VERSION_MAJOR: int
 PULSEWAVES_VERSION_MINOR: int
@@ -42,6 +42,26 @@ PULSEZIP_COMPRESSOR_NONE: int
 PULSEZIP_COMPRESSOR_DEFAULT: int
 PULSEZIP_CODER_ARITHMETIC: int
 PULSEZIP_CHUNK_SIZE_DEFAULT: int
+
+
+class _HistogramBin(TypedDict):
+    """Snapshot of one populated histogram bin."""
+
+    bin: int
+    minimum: float
+    maximum: float
+    count: int
+    value_sum: float | None
+    average: float | None
+
+
+class _HistogramSnapshot(TypedDict):
+    """Snapshot of a complete histogram."""
+
+    step: float
+    count: int
+    average: float
+    bins: list[_HistogramBin]
 
 
 class PulseItemType(Enum):
@@ -950,6 +970,10 @@ class PulseBin:
         """Add ``value`` to the bin that contains ``item``."""
         ...
 
+    def snapshot(self) -> _HistogramSnapshot:
+        """Return a Python dictionary with populated bin ranges and counts."""
+        ...
+
 
 class PulseHistogram:
     """Collection of named PulseWaves histograms."""
@@ -974,6 +998,10 @@ class PulseHistogram:
 
     def add(self, pulse: Pulse) -> None:
         """Add ``pulse`` to all configured histograms."""
+        ...
+
+    def snapshot(self) -> dict[str, _HistogramSnapshot]:
+        """Return snapshots for all configured histograms keyed by field name."""
         ...
 
 

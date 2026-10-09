@@ -167,11 +167,13 @@ while reader.read_pulse():
     histogram.add(reader.get_pulse())
 
 reader.close()
-```
 
-The C++ `PULSEhistogram` type reports directly to `FILE*`, so the current Python
-binding supports building histogram state but does not yet expose a Pythonic
-`report()` result.
+snapshot = histogram.snapshot()
+intensity = snapshot["intensity"]
+
+for bin_ in intensity["bins"]:
+    print(bin_["minimum"], bin_["maximum"], bin_["count"])
+```
 
 ## Build an Occupancy Grid
 

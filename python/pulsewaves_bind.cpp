@@ -103,7 +103,12 @@ public:
 
     bool read_pulse()
     {
-        return reader && reader->read_pulse();
+        if (!reader || !reader->read_pulse()) {
+            return false;
+        }
+
+        reader->pulse.compute_anchor_and_target_and_dir();
+        return true;
     }
 
     bool read_waves()
@@ -232,6 +237,70 @@ private:
 #define FIXED_STRING_PROPERTY(cls, name, member) \
     def_property(name, [](const cls& self) { return fixed_string(self.member); }, \
                  [](cls& self, const std::string& value) { set_fixed_string(self.member, value); })
+
+py::list pulse_bin_entries(const PULSEbin& bin)
+{
+    py::list entries;
+    for (const PULSEbin::Entry& entry : bin.snapshot()) {
+        py::dict item;
+        item["bin"] = entry.bin;
+        item["minimum"] = entry.minimum;
+        item["maximum"] = entry.maximum;
+        item["count"] = entry.count;
+        if (bin.has_values()) {
+            item["value_sum"] = entry.value_sum;
+            item["average"] = entry.average;
+        } else {
+            item["value_sum"] = py::none();
+            item["average"] = py::none();
+        }
+        entries.append(item);
+    }
+    return entries;
+}
+
+py::dict pulse_bin_snapshot(const PULSEbin& bin)
+{
+    py::dict snapshot;
+    snapshot["step"] = bin.step();
+    snapshot["count"] = bin.get_count();
+    snapshot["average"] = bin.average();
+    snapshot["bins"] = pulse_bin_entries(bin);
+    return snapshot;
+}
+
+void add_histogram_bin(py::dict& snapshot, const PULSEhistogram& histogram, const char* name)
+{
+    const PULSEbin* bin = histogram.get_bin(name);
+    if (bin) {
+        snapshot[name] = pulse_bin_snapshot(*bin);
+    }
+}
+
+py::dict pulse_histogram_snapshot(const PULSEhistogram& histogram)
+{
+    py::dict snapshot;
+    add_histogram_bin(snapshot, histogram, "T");
+    add_histogram_bin(snapshot, histogram, "time");
+    add_histogram_bin(snapshot, histogram, "offset");
+    add_histogram_bin(snapshot, histogram, "anchor_x");
+    add_histogram_bin(snapshot, histogram, "anchor_y");
+    add_histogram_bin(snapshot, histogram, "anchor_z");
+    add_histogram_bin(snapshot, histogram, "target_x");
+    add_histogram_bin(snapshot, histogram, "target_y");
+    add_histogram_bin(snapshot, histogram, "target_z");
+    add_histogram_bin(snapshot, histogram, "descriptor");
+    add_histogram_bin(snapshot, histogram, "intensity");
+    add_histogram_bin(snapshot, histogram, "classification");
+    add_histogram_bin(snapshot, histogram, "samples");
+    add_histogram_bin(snapshot, histogram, "anchor_X");
+    add_histogram_bin(snapshot, histogram, "anchor_Y");
+    add_histogram_bin(snapshot, histogram, "anchor_Z");
+    add_histogram_bin(snapshot, histogram, "target_X");
+    add_histogram_bin(snapshot, histogram, "target_Y");
+    add_histogram_bin(snapshot, histogram, "target_Z");
+    return snapshot;
+}
 
 PYBIND11_MODULE(pulsewaves_native, m) {
     m.doc() = "Native PulseWaves bindings";
@@ -736,7 +805,8 @@ PYBIND11_MODULE(pulsewaves_native, m) {
         .def("add_int", static_cast<void (PULSEbin::*)(I32)>(&PULSEbin::add))
         .def("add_int64", static_cast<void (PULSEbin::*)(I64)>(&PULSEbin::add))
         .def("add_float", static_cast<void (PULSEbin::*)(F64)>(&PULSEbin::add))
-        .def("add_value", static_cast<void (PULSEbin::*)(I32, I32)>(&PULSEbin::add));
+        .def("add_value", static_cast<void (PULSEbin::*)(I32, I32)>(&PULSEbin::add))
+        .def("snapshot", &pulse_bin_snapshot);
 
     py::class_<PULSEhistogram>(m, "PulseHistogram")
         .def(py::init<>())
@@ -750,7 +820,8 @@ PYBIND11_MODULE(pulsewaves_native, m) {
         .def("histo_avg", &PULSEhistogram::histo_avg)
         .def("add", [](PULSEhistogram& self, const PULSEpulse& pulse) {
             self.add(&pulse);
-        });
+        })
+        .def("snapshot", &pulse_histogram_snapshot);
 
     py::class_<PULSEoccupancyGrid>(m, "PulseOccupancyGrid")
         .def(py::init<F32>())
