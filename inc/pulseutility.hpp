@@ -33,6 +33,8 @@
 
 #include "pulsepulse.hpp"
 
+#include <vector>
+
 class PULSEinventory
 {
 public:
@@ -76,10 +78,25 @@ private:
 class PULSEbin
 {
 public:
+  struct Entry
+  {
+    I32 bin;
+    F64 minimum;
+    F64 maximum;
+    U32 count;
+    F64 value_sum;
+    F64 average;
+  };
+
   void add(I32 item);
   void add(I64 item);
   void add(F64 item);
   void add(I32 item, I32 value);
+  std::vector<Entry> snapshot() const;
+  F64 step() const;
+  F64 average() const;
+  I64 get_count() const { return count; };
+  BOOL has_values() const { return (values_pos || values_neg); };
   void report(FILE* file, const char* name=0, const char* name_avg=0) const;
   PULSEbin(F32 step);
   ~PULSEbin();
@@ -106,6 +123,7 @@ public:
   BOOL histo(const char* name, F32 step);
   BOOL histo_avg(const char* name, F32 step, const char* name_avg);
   void add(const PULSEpulse* pulse);
+  const PULSEbin* get_bin(const char* name) const;
   void report(FILE* file) const;
   PULSEhistogram();
   ~PULSEhistogram();

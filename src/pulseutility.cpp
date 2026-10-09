@@ -318,7 +318,7 @@ void PULSEbin::add(I32 item, I32 value)
       I32 i;
       if (size_pos == 0)
       {
-        size_pos = 1024;
+        size_pos = bin + 1024;
         bins_pos = (U32*)malloc(sizeof(U32)*size_pos);
         values_pos = (F64*)malloc(sizeof(F64)*size_pos);
         for (i = 0; i < size_pos; i++) { bins_pos[i] = 0; values_pos[i] = 0; }
@@ -332,6 +332,11 @@ void PULSEbin::add(I32 item, I32 value)
         size_pos = new_size;
       }
     }
+    if (values_pos == 0)
+    {
+      values_pos = (F64*)malloc(sizeof(F64)*size_pos);
+      for (I32 i = 0; i < size_pos; i++) values_pos[i] = 0;
+    }
     bins_pos[bin]++;
     values_pos[bin] += value;
   }
@@ -343,9 +348,9 @@ void PULSEbin::add(I32 item, I32 value)
       I32 i;
       if (size_neg == 0)
       {
-        size_neg = 1024;
+        size_neg = bin + 1024;
         bins_neg = (U32*)malloc(sizeof(U32)*size_neg);
-        values_neg = (F64*)malloc(sizeof(F64)*size_pos);
+        values_neg = (F64*)malloc(sizeof(F64)*size_neg);
         for (i = 0; i < size_neg; i++) { bins_neg[i] = 0; values_neg[i] = 0; }
       }
       else
@@ -357,9 +362,68 @@ void PULSEbin::add(I32 item, I32 value)
         size_neg = new_size;
       }
     }
+    if (values_neg == 0)
+    {
+      values_neg = (F64*)malloc(sizeof(F64)*size_neg);
+      for (I32 i = 0; i < size_neg; i++) values_neg[i] = 0;
+    }
     bins_neg[bin]++;
     values_neg[bin] += value;
   }
+}
+
+std::vector<PULSEbin::Entry> PULSEbin::snapshot() const
+{
+  std::vector<Entry> entries;
+  I32 i, bin;
+  Entry entry;
+
+  if (size_neg)
+  {
+    for (i = size_neg-1; i >= 0; i--)
+    {
+      if (bins_neg[i])
+      {
+        bin = -(i+1) + anker;
+        entry.bin = bin;
+        entry.minimum = ((F64)bin)/one_over_step;
+        entry.maximum = ((F64)(bin+1))/one_over_step;
+        entry.count = bins_neg[i];
+        entry.value_sum = values_neg ? values_neg[i] : 0.0;
+        entry.average = values_neg ? values_neg[i]/bins_neg[i] : 0.0;
+        entries.push_back(entry);
+      }
+    }
+  }
+  if (size_pos)
+  {
+    for (i = 0; i < size_pos; i++)
+    {
+      if (bins_pos[i])
+      {
+        bin = i + anker;
+        entry.bin = bin;
+        entry.minimum = ((F64)bin)/one_over_step;
+        entry.maximum = ((F64)(bin+1))/one_over_step;
+        entry.count = bins_pos[i];
+        entry.value_sum = values_pos ? values_pos[i] : 0.0;
+        entry.average = values_pos ? values_pos[i]/bins_pos[i] : 0.0;
+        entries.push_back(entry);
+      }
+    }
+  }
+
+  return entries;
+}
+
+F64 PULSEbin::step() const
+{
+  return 1.0f/one_over_step;
+}
+
+F64 PULSEbin::average() const
+{
+  return count ? total/count : 0.0;
 }
 
 void PULSEbin::report(FILE* file, const char* name, const char* name_avg) const
@@ -454,6 +518,8 @@ PULSEhistogram::PULSEhistogram()
   target_X_bin = 0;
   target_Y_bin = 0;
   target_Z_bin = 0;
+  nada_bin_nada1 = 0;
+  nada_bin_nada2 = 0;
 }
 
 PULSEhistogram::~PULSEhistogram()
@@ -478,6 +544,8 @@ PULSEhistogram::~PULSEhistogram()
   if (target_X_bin) delete target_X_bin;
   if (target_Y_bin) delete target_Y_bin;
   if (target_Z_bin) delete target_Z_bin;
+  if (nada_bin_nada1) delete nada_bin_nada1;
+  if (nada_bin_nada2) delete nada_bin_nada2;
 }
 
 BOOL PULSEhistogram::parse(int argc, char* argv[])
@@ -595,12 +663,12 @@ void PULSEhistogram::add(const PULSEpulse* pulse)
   if (T_bin) T_bin->add(pulse->T);
   if (time_bin) time_bin->add(pulse->get_t());
   if (offset_bin) offset_bin->add(pulse->offset);
-  if (anchor_x_bin) anchor_x_bin->add(pulse->get_anchor_x());
-  if (anchor_y_bin) anchor_y_bin->add(pulse->get_anchor_y());
-  if (anchor_z_bin) anchor_z_bin->add(pulse->get_anchor_z());
-  if (target_x_bin) anchor_x_bin->add(pulse->get_target_x());
-  if (target_y_bin) anchor_y_bin->add(pulse->get_target_y());
-  if (target_z_bin) anchor_z_bin->add(pulse->get_target_z());
+  if (anchor_x_bin) anchor_x_bin->add(pulse->compute_and_get_anchor_x());
+  if (anchor_y_bin) anchor_y_bin->add(pulse->compute_and_get_anchor_y());
+  if (anchor_z_bin) anchor_z_bin->add(pulse->compute_and_get_anchor_z());
+  if (target_x_bin) target_x_bin->add(pulse->compute_and_get_target_x());
+  if (target_y_bin) target_y_bin->add(pulse->compute_and_get_target_y());
+  if (target_z_bin) target_z_bin->add(pulse->compute_and_get_target_z());
   if (descriptor_bin) descriptor_bin->add(pulse->descriptor_index);
   if (intensity_bin) intensity_bin->add(pulse->intensity);
   if (classification_bin) classification_bin->add(pulse->classification);
@@ -611,6 +679,49 @@ void PULSEhistogram::add(const PULSEpulse* pulse)
   if (target_X_bin) target_X_bin->add(pulse->target_X);
   if (target_Y_bin) target_Y_bin->add(pulse->target_Y);
   if (target_Z_bin) target_Z_bin->add(pulse->target_Z);
+}
+
+const PULSEbin* PULSEhistogram::get_bin(const char* name) const
+{
+  if (strstr(name, "T") != 0)
+    return T_bin;
+  else if (strstr(name, "time") != 0)
+    return time_bin;
+  else if (strstr(name, "offset") != 0)
+    return offset_bin;
+  else if (strcmp(name, "anchor_x") == 0)
+    return anchor_x_bin;
+  else if (strcmp(name, "anchor_y") == 0)
+    return anchor_y_bin;
+  else if (strcmp(name, "anchor_z") == 0)
+    return anchor_z_bin;
+  else if (strcmp(name, "target_x") == 0)
+    return target_x_bin;
+  else if (strcmp(name, "target_y") == 0)
+    return target_y_bin;
+  else if (strcmp(name, "target_z") == 0)
+    return target_z_bin;
+  else if (strcmp(name, "descriptor") == 0)
+    return descriptor_bin;
+  else if (strcmp(name, "intensity") == 0)
+    return intensity_bin;
+  else if (strstr(name, "classification") != 0)
+    return classification_bin;
+  else if (strstr(name, "samples") != 0)
+    return samples_bin;
+  else if (strcmp(name, "anchor_X") == 0)
+    return anchor_X_bin;
+  else if (strcmp(name, "anchor_Y") == 0)
+    return anchor_Y_bin;
+  else if (strcmp(name, "anchor_Z") == 0)
+    return anchor_Z_bin;
+  else if (strcmp(name, "target_X") == 0)
+    return target_X_bin;
+  else if (strcmp(name, "target_Y") == 0)
+    return target_Y_bin;
+  else if (strcmp(name, "target_Z") == 0)
+    return target_Z_bin;
+  return 0;
 }
 
 void PULSEhistogram::report(FILE* file) const
@@ -992,4 +1103,3 @@ PULSEoccupancyGrid::~PULSEoccupancyGrid()
 {
   reset();
 }
-
